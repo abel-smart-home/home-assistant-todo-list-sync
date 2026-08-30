@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import Entity
@@ -38,6 +39,7 @@ class TodoListSyncEntity(Entity):
             )
         )
 
+    @callback
     def _handle_manager_update(self) -> None:
         """Write fresh manager data to Home Assistant."""
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.3 — 2026-08-30
+
+Home Assistant event-loop thread-safety hotfix.
+
+### Fixed
+
+- Marked the dispatcher entity-update listener with Home Assistant's `@callback` decorator.
+- Diagnostic entity state writes now execute on Home Assistant's event loop instead of an executor thread.
+- Fixes repeated `async_write_ha_state from a thread other than the event loop` warnings and runtime errors.
+- No list reconciliation, offline recovery, Alexa refresh, or 30-minute verification logic was changed.
+
 ## 0.1.2 — 2026-08-30
 
 Version display consistency fix.
