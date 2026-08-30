@@ -23,7 +23,7 @@ class TodoListSyncEntity(Entity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, manager.entry.entry_id)},
             name=manager.entry.title,
-            manufacturer="Todo List Sync",
+            manufacturer=NAME,
             model="Bidirectional to-do synchronizer",
             sw_version=VERSION,
         )

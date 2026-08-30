@@ -11,11 +11,7 @@ from .manager import TodoListSyncManager
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> dict:
-    """Return privacy-preserving diagnostics.
-
-    Shopping-list item names and the persisted shadow contents are deliberately
-    excluded from diagnostics.
-    """
+    """Return privacy-preserving diagnostics without list contents."""
 
     manager: TodoListSyncManager = entry.runtime_data
     return {

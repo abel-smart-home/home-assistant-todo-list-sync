@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.1.6 — 2026-08-30
+
+Reliability, recovery, privacy and project-quality release.
+
+### Added
+
+- Bounded automatic retry sequence after transient synchronization failures: 5 s, 15 s and 60 s.
+- Retry diagnostics: `retry_attempt`, `retry_count_total`, `last_retry` and `last_retry_result`.
+- Structured privacy-safe error diagnostics: category, operation, side and exception type without raw provider/item messages.
+- Fresh secondary-provider verification on startup when a lightweight provider refresh is available.
+- Home Assistant Repairs issue when a configured list genuinely disappears after Home Assistant is running.
+- Automatic Repair cleanup when the entity returns.
+- Unit/regression coverage for retry policy, startup refresh, shadow preservation, Repairs, provider refresh fallback, storage and version consistency.
+- GitHub Actions tests and Ruff lint/format checks.
+- Dependabot configuration for GitHub Actions.
+- Bug-report issue form and contributor/branch policy.
+- `.gitignore` preventing Python bytecode and local tooling artifacts from being committed.
+
+### Changed
+
+- Private shadow storage now uses Home Assistant atomic writes.
+- Private storage is removed when a Todo List Sync config entry is deleted.
+- Startup waits for Home Assistant's normal boot lifecycle before raising missing-list Repairs.
+- `unavailable`/`unknown` provider states remain temporary waiting conditions and do not create missing-list Repairs.
+- A real list event, reconnect or manual request supersedes a pending automatic retry.
+- Automatic retries never repeat a heavy generic config-entry reload.
+- Initial synchronization detects active changes that occur during its non-destructive writes and queues a follow-up reconciliation.
+- README now presents Todo List Sync as a generic `todo.*` synchronizer while explicitly documenting Home Assistant Local To-do ↔ Alexa Devices as the primary design and test target.
+- CI actions are pinned to immutable commit SHAs.
+
+### Privacy
+
+- Legacy raw `last_error` text from v0.1.5 and earlier is redacted on load.
+- New diagnostics never store raw provider exception messages that could contain shopping-list text.
+- Default integration error logs contain structured categories instead of raw provider exception payloads.
+
+### Repository cleanup
+
+- Generated `custom_components/todo_list_sync/__pycache__/` content must be deleted from source control before publishing this release.
+
 ## 0.1.5 — 2026-08-30
 
 Semantic deduplication for to-do update notifications.

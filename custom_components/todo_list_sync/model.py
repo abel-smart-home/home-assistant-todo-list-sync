@@ -21,7 +21,6 @@ class SyncItem:
         """Serialize the item for Home Assistant storage."""
 
         data = asdict(self)
-        # UIDs are provider-specific and intentionally not persisted in the shadow.
         data.pop("uid", None)
         return data
 

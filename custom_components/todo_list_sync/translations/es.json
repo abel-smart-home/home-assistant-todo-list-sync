@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Crear sincronización entre dos listas",
-        "description": "Selecciona la lista principal y la lista secundaria. La primera sincronización es segura: une los artículos activos de ambas listas y no borra artículos.",
+        "description": "Sincroniza dos listas de tareas compatibles de Home Assistant. Todo List Sync está diseñada principalmente para una lista local de Home Assistant junto con una lista de compras/tareas de Alexa Devices. La primera sincronización es segura: une los artículos activos de ambas listas y no borra artículos.",
         "data": {
           "primary_entity": "Lista principal",
           "secondary_entity": "Lista secundaria"
@@ -24,7 +24,7 @@
     "step": {
       "init": {
         "title": "Opciones de Todo List Sync",
-        "description": "La verificación de seguridad tiene un mínimo obligatorio de 30 minutos. Para Alexa Devices se realiza una actualización completa optimizada cuando Home Assistant expone el método compatible.",
+        "description": "La verificación de seguridad tiene un mínimo obligatorio de 30 minutos. Alexa Devices recibe una actualización completa optimizada cuando Home Assistant expone el método compatible; los proveedores genéricos continúan usando su caché de Home Assistant.",
         "data": {
           "conflict_policy": "Ganador en conflictos reales",
           "verification_interval": "Intervalo de verificación de seguridad",
@@ -56,6 +56,12 @@
       "enabled": {
         "name": "Sincronización"
       }
+    }
+  },
+  "issues": {
+    "configured_list_missing": {
+      "title": "Falta una lista configurada",
+      "description": "Todo List Sync no encuentra la entidad {side} configurada `{entity_id}` para **{entry_title}**. Restaura o vuelve a crear esa entidad de tareas en Home Assistant, o elimina y vuelve a crear el par de sincronización. Un estado temporal `unavailable` del proveedor no genera esta reparación."
     }
   }
 }

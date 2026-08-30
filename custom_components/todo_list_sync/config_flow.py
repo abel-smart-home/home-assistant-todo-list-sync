@@ -8,7 +8,11 @@ import voluptuous as vol
 
 from homeassistant.components.todo import TodoListEntity
 from homeassistant.components.todo.const import DATA_COMPONENT, TodoListEntityFeature
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlowWithReload
+from homeassistant.config_entries import (
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 

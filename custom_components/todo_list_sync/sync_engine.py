@@ -23,12 +23,7 @@ class ReconcileResult:
 
 
 def normalize_summary(summary: str) -> str:
-    """Normalize an item name for comparison without changing display text.
-
-    Comparison is case-insensitive, accent-insensitive and whitespace-insensitive.
-    This intentionally treats values such as "Limón", "limon" and " LIMON " as
-    the same logical shopping-list item.
-    """
+    """Normalize an item name for comparison without changing display text."""
 
     normalized = unicodedata.normalize("NFKD", summary.strip())
     normalized = "".join(ch for ch in normalized if not unicodedata.combining(ch))
@@ -43,13 +38,7 @@ def semantic_state(item: SyncItem | None) -> str | None:
 
 
 def semantic_signature(items: dict[str, SyncItem]) -> tuple[tuple[str, str], ...]:
-    """Return a stable signature for the list semantics Todo List Sync tracks.
-
-    Provider refreshes can notify Home Assistant to-do subscribers even when the
-    item contents did not change.  The signature intentionally ignores ordering,
-    display-only spelling/case differences already normalized into the mapping
-    key, UIDs and provider metadata.
-    """
+    """Return a stable signature for the list semantics Todo List Sync tracks."""
 
     return tuple(sorted((key, item.status) for key, item in items.items()))
 
@@ -73,12 +62,7 @@ def reconcile_three_way(
     secondary: dict[str, SyncItem],
     policy: ConflictPolicy = ConflictPolicy.PRIMARY,
 ) -> ReconcileResult:
-    """Merge primary and secondary changes against the last common shadow.
-
-    A change on only one side is propagated to the other side. If both sides
-    changed the same logical item to different states, the configured conflict
-    policy decides the result. Independent changes on different items are merged.
-    """
+    """Merge primary and secondary changes against the last common shadow."""
 
     desired: dict[str, SyncItem] = {}
     conflicts: list[str] = []
@@ -111,7 +95,6 @@ def reconcile_three_way(
         elif s_changed and not p_changed:
             chosen = s_item
         elif p_state == s_state:
-            # Both changed, but to the same semantic result.
             chosen = _preferred_item(p_item, s_item, old, policy)
         else:
             conflicts.append(key)
@@ -131,11 +114,7 @@ def reconcile_three_way(
 def build_safe_initial_target(
     primary: dict[str, SyncItem], secondary: dict[str, SyncItem]
 ) -> dict[str, SyncItem]:
-    """Create a non-destructive first-sync target from active items only.
-
-    Existing completed history is intentionally excluded. The primary list wins
-    display-name differences when the same normalized item exists on both sides.
-    """
+    """Create a non-destructive first-sync target from active items only."""
 
     desired: dict[str, SyncItem] = {}
     for key in sorted(set(primary) | set(secondary)):

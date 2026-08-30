@@ -7,7 +7,7 @@ from enum import StrEnum
 
 DOMAIN = "todo_list_sync"
 NAME = "Todo List Sync"
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 
 CONF_PRIMARY_ENTITY = "primary_entity"
 CONF_SECONDARY_ENTITY = "secondary_entity"
@@ -25,6 +25,7 @@ VERIFICATION_STEP = 30
 DEBOUNCE_SECONDS = 1.5
 CONFIRM_TIMEOUT_SECONDS = 8.0
 CONFIRM_POLL_SECONDS = 0.4
+RETRY_DELAYS_SECONDS: tuple[float, ...] = (5.0, 15.0, 60.0)
 
 STORAGE_VERSION = 1
 STORAGE_KEY_PREFIX = DOMAIN

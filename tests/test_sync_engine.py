@@ -86,7 +86,6 @@ def test_semantic_signature_ignores_order_and_display_text() -> None:
     bread = normalize_summary("Bread")
     first = {milk: _item("Milk"), bread: _item("Bread", STATUS_COMPLETED)}
     second = {bread: _item("BREAD", STATUS_COMPLETED), milk: _item("MILK")}
-
     assert semantic_signature(first) == semantic_signature(second)
 
 
@@ -96,6 +95,5 @@ def test_semantic_signature_detects_status_and_membership_changes() -> None:
     baseline = {milk: _item("Milk"), bread: _item("Bread")}
     completed = {milk: _item("Milk", STATUS_COMPLETED), bread: _item("Bread")}
     removed = {milk: _item("Milk")}
-
     assert semantic_signature(baseline) != semantic_signature(completed)
     assert semantic_signature(baseline) != semantic_signature(removed)

@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Create a to-do list synchronization pair",
-        "description": "Choose the authoritative primary list and the secondary list used as its synchronized companion. The first synchronization is non-destructive and merges active items from both lists.",
+        "description": "Synchronize any two compatible Home Assistant to-do lists. Todo List Sync is designed primarily for a local Home Assistant list paired with an Alexa Devices shopping/to-do list. The first synchronization is non-destructive and merges active items from both lists.",
         "data": {
           "primary_entity": "Primary to-do list",
           "secondary_entity": "Secondary to-do list"
@@ -24,7 +24,7 @@
     "step": {
       "init": {
         "title": "Todo List Sync options",
-        "description": "Safety verification is limited to a minimum of 30 minutes. Alexa Devices receives an optimized full list refresh when Home Assistant exposes the required runtime helper.",
+        "description": "Safety verification is limited to a minimum of 30 minutes. Alexa Devices receives an optimized full-list refresh when Home Assistant exposes the compatible runtime helper; generic providers continue with their Home Assistant cache.",
         "data": {
           "conflict_policy": "Winner for true conflicts",
           "verification_interval": "Safety verification interval",
@@ -56,6 +56,12 @@
       "enabled": {
         "name": "Synchronization"
       }
+    }
+  },
+  "issues": {
+    "configured_list_missing": {
+      "title": "Configured to-do list is missing",
+      "description": "Todo List Sync cannot find the configured {side} entity `{entity_id}` for **{entry_title}**. Restore or recreate that Home Assistant to-do entity, or remove and recreate the synchronization pair. A temporary `unavailable` provider state does not create this Repair."
     }
   }
 }

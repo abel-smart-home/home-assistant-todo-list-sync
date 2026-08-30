@@ -6,253 +6,216 @@ This plan is intentionally focused on recovery and data safety.
 
 Use non-critical test lists first.
 
-Recommended pair:
+Principal validation pair:
 
-- Primary: Local To-do list
+- Primary: Home Assistant Local To-do list
 - Secondary: Alexa Devices shopping list
+
+Other compatible Home Assistant `todo.*` providers should also work when create/update/delete are supported, but Alexa Devices + Local To-do is the primary design target.
 
 Set conflict policy to **Primary** and verification interval to **30 minutes**.
 
 ## Test 1 — first safe merge
 
-Primary:
+Primary: `Milk`, `Eggs`. Secondary: `Bread`, `Coffee`.
 
-```text
-Milk
-Eggs
-```
+Expected on both: `Milk`, `Eggs`, `Bread`, `Coffee`. No active item is deleted.
 
-Secondary:
+## Test 2 — Primary → Secondary
 
-```text
-Bread
-Coffee
-```
+Add `Tortillas` to Primary. Expected: it appears on Secondary within seconds and status returns to `synchronized`.
 
-Add Todo List Sync.
+## Test 3 — Alexa/Secondary → Primary
 
-Expected result on both lists:
-
-```text
-Milk
-Eggs
-Bread
-Coffee
-```
-
-No active item should be deleted.
-
-## Test 2 — normal primary → secondary
-
-With both providers connected:
-
-1. Add `Tortillas` to the primary list.
-2. Wait a few seconds.
-
-Expected:
-
-- `Tortillas` appears on the secondary list.
-- status returns to `synchronized`.
-
-## Test 3 — normal Alexa/secondary → primary
-
-1. Use Alexa voice to add `Cheese`.
-2. Wait for Alexa Devices to receive the event.
-
-Expected:
-
-- `Cheese` appears in the local primary list.
+Use Alexa voice to add `Cheese`. Expected: it appears on Primary.
 
 ## Test 4 — removal from Alexa
 
-1. Add `Milk` if needed.
-2. Ask Alexa to remove `Milk`.
-
-Expected:
-
-- `Milk` disappears from the primary list after reconciliation.
+Remove a synchronized item using Alexa. Expected: it disappears from Primary after reconciliation.
 
 ## Test 5 — completion state
 
-1. Add a new tracked item, `Soap`.
-2. Let both sides synchronize.
-3. Mark `Soap` completed on one side.
+Add and synchronize `Soap`, then complete it on one side. Expected: the tracked item becomes completed on the other side. Pre-existing completed history is not imported at initial setup.
 
-Expected:
+## Test 6 — HA WAN offline, local changes
 
-- the corresponding tracked item becomes completed on the other side.
+Disconnect HA WAN while keeping LAN running. Add two local items and remove one synchronized item from Primary. Restore WAN.
 
-Pre-existing completed history should not be imported during initial setup.
+Expected: local changes remain intact and eventually reach Secondary. Shadow advances only after convergence.
 
-## Test 6 — Home Assistant WAN offline, local changes
+## Test 7 — HA offline while Alexa changes remotely
 
-1. Confirm both lists are synchronized.
-2. Disconnect Home Assistant's WAN while keeping the local network running.
-3. Add `Local A` and `Local B` to the primary list.
-4. Remove one previously synchronized item from the primary list.
-5. Restore WAN.
+Disconnect HA WAN. Add one item and remove a synchronized item through Alexa/app. Restore WAN.
 
-Expected:
-
-- primary local changes remain intact while offline.
-- secondary provider eventually receives the additions/removal.
-- shadow advances only after convergence.
-
-## Test 7 — Home Assistant offline while Alexa changes remotely
-
-1. Synchronize both lists.
-2. Disconnect Home Assistant WAN.
-3. From an Internet-connected Alexa/app, add `Remote A` and remove a synchronized item.
-4. Restore Home Assistant WAN.
-
-Expected:
-
-- reconnect refresh obtains the remote state when supported.
-- `Remote A` is merged into the primary list.
-- the remote removal is propagated to primary.
+Expected: reconnect refresh obtains the remote state when supported and merges both remote changes into Primary.
 
 ## Test 8 — simultaneous independent offline changes
 
-Start synchronized with:
+Start synchronized with `Milk`, `Bread`, `Eggs`, `Coffee`.
 
-```text
-Milk
-Bread
-Eggs
-Coffee
-```
+Primary while offline: `+ Tortillas`, `- Coffee`.
 
-During Home Assistant WAN outage:
+Secondary while offline: `+ Cheese`, `- Eggs`.
 
-Primary changes:
-
-```text
-+ Tortillas
-- Coffee
-```
-
-Remote changes:
-
-```text
-+ Cheese
-- Eggs
-```
-
-Restore WAN.
-
-Expected final state on both sides:
-
-```text
-Milk
-Bread
-Tortillas
-Cheese
-```
+Expected final state on both: `Milk`, `Bread`, `Tortillas`, `Cheese`.
 
 ## Test 9 — true conflict
 
-Start with tracked item `Milk` active.
+Start with tracked active `Milk`. While disconnected, complete it on Primary and delete it on Secondary.
 
-While disconnected:
+Expected with Primary policy: completed `Milk` wins and `conflicts_last_sync` increases. Repeat with Secondary policy if desired.
 
-- mark `Milk` completed on Primary.
-- delete `Milk` on Secondary.
+## Test 10 — periodic safety verification
 
-With conflict policy **Primary**, restore connectivity.
+Leave both lists untouched for at least 30 minutes.
 
-Expected:
-
-- Primary's semantic choice wins.
-- `conflicts_last_sync` increases.
-
-Repeat with Secondary conflict policy if desired.
-
-## Test 10 — safety verification
-
-1. Set interval to 30 minutes.
-2. Confirm the status sensor reports `verification_interval_minutes: 30`.
-3. Leave both lists untouched for at least one full interval.
-4. Inspect the Status sensor attributes after the periodic verification.
-
-Expected:
+Expected diagnostic fields:
 
 ```text
 last_periodic_verification_result: synchronized
-last_periodic_refresh_mode: alexa_full_sync
 periodic_verification_count: 1 or higher
-last_periodic_verification: <recent timestamp>
 ```
 
-For Alexa Devices 2026.8.x, `alexa_full_sync` confirms that the periodic pass requested a fresh provider-side list snapshot rather than relying only on cached state.
+For compatible Alexa Devices versions:
+
+```text
+last_periodic_refresh_mode: alexa_full_sync
+```
 
 ## Test 11 — minimum interval enforcement
 
-Try to configure less than 30 minutes.
+Try to configure less than 30 minutes. Expected: UI prevents it and runtime clamps defensively to 30.
 
-Expected:
+## Test 12 — Home Assistant restart
 
-- UI selector does not allow less than 30.
-- runtime also clamps the value to 30 as a defensive measure.
+Synchronize lists, restart HA and then change one side.
 
-## Test 12 — integration restart
-
-1. Synchronize lists.
-2. Restart Home Assistant.
-3. Modify one side.
-
-Expected:
-
-- persisted shadow is reused.
-- no new destructive first merge occurs.
+Expected: persisted shadow is reused and no destructive first merge occurs.
 
 ## Test 13 — disable switch
 
-1. Turn off **Synchronization**.
-2. Change both lists independently.
-3. Confirm no synchronization occurs.
-4. Turn the switch on.
+Disable **Synchronization**, change both lists independently, then enable it again.
 
-Expected:
+Expected: no sync while disabled; shadow is retained; reconciliation resumes from the persisted common state.
 
-- the persisted shadow is retained.
-- reconciliation resumes using changes made while disabled.
+## Test 14 — normalization
 
-## Test 14 — duplicates/normalization
+Use `Limón` on one side and `limon` on the other.
 
-Add variants on different sides:
+Expected: one logical item. v0.1.6 intentionally does not model intentionally duplicated identical names as separate quantities.
+
+## Test 15 — idle provider refresh noise
+
+Leave lists unchanged for 10–15 minutes before the periodic interval.
+
+Expected: provider/coordinator refreshes with identical semantics do not repeatedly produce `syncing → synchronized`. A real add/remove/complete event remains immediate.
+
+## Test 16 — bounded automatic retry
+
+Cause a temporary service/provider failure during a synchronization pass, then restore the provider before the sequence is exhausted.
+
+Expected approximate retry schedule:
 
 ```text
-Limón
-limon
+5 s → 15 s → 60 s
 ```
 
-Expected:
+Expected diagnostics after recovery:
 
-- they are treated as one logical item.
+```text
+retry_attempt: 0
+retry_count_total: 1 or higher
+last_retry_result: recovered
+```
 
-Version 0.1.5 intentionally does not preserve multiple quantities represented by duplicate identical names.
+## Test 17 — retry exhaustion
 
-## Test 15 — idle provider state churn does not trigger reconciliation
-
-1. Confirm both lists are synchronized.
-2. Do not add, remove, or complete any items.
-3. Observe the Status entity activity for 10–15 minutes before the periodic interval expires.
-
-Expected:
-
-- ordinary Alexa/provider state or attribute refreshes do not repeatedly produce `syncing → synchronized`.
-- an actual to-do item change still synchronizes within a few seconds.
-- the 30-minute periodic verification still runs independently and increments `periodic_verification_count`.
-
-
-## Test 15 — unchanged provider refresh notifications
-
-1. Leave both lists unchanged and available.
-2. Do not add, remove or complete any items.
-3. Observe the Todo List Sync Status activity before the next 30-minute safety verification.
+Keep the failing condition present through all three automatic retries.
 
 Expected:
 
-- ordinary provider/coordinator refreshes with identical list semantics do not trigger repeated `syncing → synchronized` passes.
-- a real add/remove/complete operation still triggers event-driven synchronization promptly.
-- the independent 30-minute periodic verification still runs and increments `periodic_verification_count`.
+```text
+status: error
+last_retry_result: exhausted
+```
+
+No fourth automatic retry is scheduled.
+
+## Test 18 — real event supersedes sleeping retry
+
+Create a transient failure so a retry is scheduled, then restore the provider and make a real list change before the delay expires.
+
+Expected: the pending retry is cancelled/superseded and the newer event drives reconciliation.
+
+## Test 19 — partial mutation never advances shadow
+
+Force one side to accept an operation while the other side/confirmation fails.
+
+Expected: status becomes `error`/retrying, but the stored common shadow remains the last fully confirmed state. After recovery, reconciliation uses that old shadow to resolve the partial write safely.
+
+## Test 20 — fresh startup refresh
+
+While Home Assistant is off, change the Secondary cloud list remotely. Start Home Assistant.
+
+Expected for Alexa Devices: startup diagnostics eventually show `last_refresh_mode: alexa_full_sync` and the remote change is merged without requiring a 30-minute wait.
+
+For a generic provider with no refresh helper, expected mode is `cache_only`; synchronization still remains generic.
+
+## Test 21 — delayed provider startup
+
+Restart Home Assistant with the Secondary provider loading later than Todo List Sync.
+
+Expected: Todo List Sync does not permanently fail setup. It waits and automatically reconciles once the selected entity becomes available. No false missing-list Repair should remain after normal startup.
+
+## Test 22 — temporary unavailable vs genuinely missing
+
+A. Temporarily make the provider entity `unavailable`.
+
+Expected: `waiting_primary` or `waiting_secondary`; **no missing-list Repair**.
+
+B. Actually delete/remove a configured `todo` entity after Home Assistant is running.
+
+Expected: a Home Assistant Repairs issue appears for that Primary/Secondary entity.
+
+Restore the entity. Expected: the Repair clears automatically and synchronization resumes.
+
+## Test 23 — privacy-safe diagnostics
+
+Cause an operation failure involving a deliberately distinctive item name such as `PRIVATE-TEST-ITEM-9371`.
+
+Export diagnostics and inspect the Status attributes.
+
+Expected: the item name is absent. Error fields contain only structured values such as:
+
+```text
+last_error_category: service_call_failed
+last_error_operation: add_item
+last_error_side: secondary
+last_error_type: <exception class>
+```
+
+## Test 24 — change during initial synchronization
+
+Create the synchronization pair with active items on both sides. While the initial merge is actively writing, add another item to either list.
+
+Expected: the first merge remains non-destructive and a follow-up reconciliation is queued automatically; the new item should not wait until the 30-minute safety verification.
+
+## Test 25 — config entry removal cleanup
+
+After a successful synchronization, remove the Todo List Sync integration entry.
+
+Expected:
+
+- both user lists remain untouched;
+- `.storage/todo_list_sync.<entry_id>` is removed;
+- any missing-list Repairs for that pair are removed.
+
+## Test 26 — version consistency and repository hygiene
+
+Before release, verify:
+
+```text
+manifest.json version == const.py VERSION == 0.1.6
+```
+
+Also verify the repository contains no tracked `__pycache__/` directories or `*.pyc` files.
