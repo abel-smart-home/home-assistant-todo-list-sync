@@ -1,0 +1,17 @@
+{
+  "domain": "todo_list_sync",
+  "name": "Todo List Sync",
+  "codeowners": [
+    "@abel-smart-home"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "todo"
+  ],
+  "documentation": "https://github.com/abel-smart-home/home-assistant-todo-list-sync",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/abel-smart-home/home-assistant-todo-list-sync/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

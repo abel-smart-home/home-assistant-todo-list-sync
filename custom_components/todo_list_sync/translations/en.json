@@ -1,0 +1,61 @@
+{
+  "title": "Todo List Sync",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Create a to-do list synchronization pair",
+        "description": "Choose the authoritative primary list and the secondary list used as its synchronized companion. The first synchronization is non-destructive and merges active items from both lists.",
+        "data": {
+          "primary_entity": "Primary to-do list",
+          "secondary_entity": "Secondary to-do list"
+        }
+      }
+    },
+    "error": {
+      "same_entity": "Primary and secondary lists must be different.",
+      "unsupported_entity": "This to-do list does not support create, update and delete operations.",
+      "entity_already_used": "One of these to-do lists is already used by another Todo List Sync entry."
+    },
+    "abort": {
+      "already_configured": "This synchronization pair is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Todo List Sync options",
+        "description": "Safety verification is limited to a minimum of 30 minutes. Alexa Devices receives an optimized full list refresh when Home Assistant exposes the required runtime helper.",
+        "data": {
+          "conflict_policy": "Winner for true conflicts",
+          "verification_interval": "Safety verification interval",
+          "refresh_on_reconnect": "Refresh the secondary provider after reconnect"
+        }
+      }
+    }
+  },
+  "selector": {
+    "conflict_policy": {
+      "options": {
+        "primary": "Primary list",
+        "secondary": "Secondary list"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Status"
+      }
+    },
+    "button": {
+      "sync_now": {
+        "name": "Synchronize now"
+      }
+    },
+    "switch": {
+      "enabled": {
+        "name": "Synchronization"
+      }
+    }
+  }
+}
