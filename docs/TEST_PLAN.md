@@ -171,13 +171,19 @@ Repeat with Secondary conflict policy if desired.
 
 1. Set interval to 30 minutes.
 2. Confirm the status sensor reports `verification_interval_minutes: 30`.
-3. Observe `last_refresh_mode` after a periodic verification.
+3. Leave both lists untouched for at least one full interval.
+4. Inspect the Status sensor attributes after the periodic verification.
 
-For Alexa Devices 2026.8.x, expected when compatible:
+Expected:
 
 ```text
-alexa_full_sync
+last_periodic_verification_result: synchronized
+last_periodic_refresh_mode: alexa_full_sync
+periodic_verification_count: 1 or higher
+last_periodic_verification: <recent timestamp>
 ```
+
+For Alexa Devices 2026.8.x, `alexa_full_sync` confirms that the periodic pass requested a fresh provider-side list snapshot rather than relying only on cached state.
 
 ## Test 11 — minimum interval enforcement
 
@@ -225,3 +231,15 @@ Expected:
 - they are treated as one logical item.
 
 Version 0.1.0 intentionally does not preserve multiple quantities represented by duplicate identical names.
+
+## Test 15 — idle provider state churn does not trigger reconciliation
+
+1. Confirm both lists are synchronized.
+2. Do not add, remove, or complete any items.
+3. Observe the Status entity activity for 10–15 minutes before the periodic interval expires.
+
+Expected:
+
+- ordinary Alexa/provider state or attribute refreshes do not repeatedly produce `syncing → synchronized`.
+- an actual to-do item change still synchronizes within a few seconds.
+- the 30-minute periodic verification still runs independently and increments `periodic_verification_count`.

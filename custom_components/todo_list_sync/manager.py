@@ -88,12 +88,18 @@ class TodoListSyncManager:
         self._pending_secondary_to_primary = 0
         self._conflicts_last_sync = 0
         self._last_refresh_mode = "none"
+        self._last_periodic_verification: str | None = None
+        self._last_periodic_verification_attempt: str | None = None
+        self._last_periodic_verification_result: str | None = None
+        self._last_periodic_refresh_mode: str | None = None
+        self._periodic_verification_count = 0
 
         self._sync_lock = asyncio.Lock()
         self._debounce_task: asyncio.Task | None = None
         self._sync_task: asyncio.Task | None = None
         self._pending_refresh_secondary = False
         self._pending_allow_reload = False
+        self._pending_periodic_verification = False
         self._pending_reason = "startup"
         self._rerun_requested = False
         self._suppress_events = 0
@@ -164,6 +170,11 @@ class TodoListSyncManager:
             "pending_secondary_to_primary": self._pending_secondary_to_primary,
             "conflicts_last_sync": self._conflicts_last_sync,
             "last_refresh_mode": self._last_refresh_mode,
+            "last_periodic_verification": self._last_periodic_verification,
+            "last_periodic_verification_attempt": self._last_periodic_verification_attempt,
+            "last_periodic_verification_result": self._last_periodic_verification_result,
+            "last_periodic_refresh_mode": self._last_periodic_refresh_mode,
+            "periodic_verification_count": self._periodic_verification_count,
             "last_sync": self._last_sync,
             "last_attempt": self._last_attempt,
             "last_error": self._last_error,
@@ -178,6 +189,15 @@ class TodoListSyncManager:
         self._shadow = dict(stored["shadow"])
         self._last_sync = stored["last_sync"]
         self._last_error = stored["last_error"]
+        self._last_periodic_verification = stored["last_periodic_verification"]
+        self._last_periodic_verification_attempt = stored[
+            "last_periodic_verification_attempt"
+        ]
+        self._last_periodic_verification_result = stored[
+            "last_periodic_verification_result"
+        ]
+        self._last_periodic_refresh_mode = stored["last_periodic_refresh_mode"]
+        self._periodic_verification_count = stored["periodic_verification_count"]
 
         self._bind_state_listeners()
         self._bind_todo_item_listeners()
@@ -235,6 +255,11 @@ class TodoListSyncManager:
         self._pending_reason = reason
         self._pending_refresh_secondary |= refresh_secondary
         self._pending_allow_reload |= allow_reload
+        if reason == "periodic_verification":
+            # Keep this flag separate from the human-readable reason. A normal
+            # item event can arrive while the periodic pass is queued and replace
+            # _pending_reason, but it must not erase the pending safety check.
+            self._pending_periodic_verification = True
 
         # Never cancel an active reconciliation. Changes that arrive while a pass
         # is running are coalesced into one follow-up pass.
@@ -271,15 +296,18 @@ class TodoListSyncManager:
 
         refresh_secondary = self._pending_refresh_secondary
         allow_reload = self._pending_allow_reload
+        periodic_verification = self._pending_periodic_verification
         reason = self._pending_reason
         self._pending_refresh_secondary = False
         self._pending_allow_reload = False
+        self._pending_periodic_verification = False
 
         self._sync_task = self.hass.async_create_task(
             self._async_sync(
                 reason,
                 refresh_secondary=refresh_secondary,
                 allow_reload=allow_reload,
+                periodic_verification=periodic_verification,
             ),
             f"todo_list_sync_{self.entry.entry_id}",
         )
@@ -309,7 +337,7 @@ class TodoListSyncManager:
             new_state: State | None = event.data.get("new_state")
             entity_id = event.data.get("entity_id")
 
-            old_unavailable = old_state is not None and old_state.state in {
+            old_available = old_state is not None and old_state.state not in {
                 STATE_UNAVAILABLE,
                 STATE_UNKNOWN,
             }
@@ -318,21 +346,30 @@ class TodoListSyncManager:
                 STATE_UNKNOWN,
             }
 
-            if (
-                entity_id == self.secondary_entity_id
-                and old_unavailable
-                and new_available
-                and self.refresh_on_reconnect
-            ):
+            # To-do content changes are handled by async_subscribe_updates().
+            # Ignore ordinary state/attribute churn while availability is unchanged
+            # so provider refreshes do not cause redundant reconciliations.
+            if old_available == new_available:
+                return
+
+            side = (
+                "primary"
+                if entity_id == self.primary_entity_id
+                else "secondary"
+            )
+            if new_available:
+                refresh_secondary = (
+                    entity_id == self.secondary_entity_id and self.refresh_on_reconnect
+                )
                 self.async_request_sync(
-                    "secondary_reconnected",
-                    refresh_secondary=True,
-                    allow_reload=True,
+                    f"{side}_reconnected",
+                    refresh_secondary=refresh_secondary,
+                    allow_reload=refresh_secondary,
                     immediate=True,
                 )
                 return
 
-            self.async_request_sync("entity_state_changed")
+            self.async_request_sync(f"{side}_unavailable", immediate=True)
 
         self._unsubscribers.append(
             async_track_state_change_event(
@@ -390,6 +427,7 @@ class TodoListSyncManager:
         *,
         refresh_secondary: bool,
         allow_reload: bool,
+        periodic_verification: bool,
     ) -> None:
         """Perform one synchronization pass."""
 
@@ -399,8 +437,15 @@ class TodoListSyncManager:
 
         async with self._sync_lock:
             self._last_attempt = dt_util.utcnow().isoformat()
+            effective_reason = (
+                "periodic_verification" if periodic_verification else reason
+            )
+            if periodic_verification:
+                self._last_periodic_verification_attempt = self._last_attempt
+                self._last_periodic_verification_result = "running"
+                self._last_periodic_refresh_mode = "not_run"
             self._set_status(SyncStatus.SYNCING)
-            _LOGGER.debug("Starting Todo List Sync pass: %s", reason)
+            _LOGGER.debug("Starting Todo List Sync pass: %s", effective_reason)
 
             try:
                 self._bind_todo_item_listeners()
@@ -408,15 +453,23 @@ class TodoListSyncManager:
                 if not self._is_entity_available(self.primary_entity_id):
                     self._update_pending_when_unavailable(primary_available=False)
                     self._set_status(SyncStatus.WAITING_PRIMARY)
+                    if periodic_verification:
+                        self._last_periodic_verification_result = "waiting_primary"
+                        await self._async_save()
                     return
 
                 if not self._is_entity_available(self.secondary_entity_id):
                     self._update_pending_when_unavailable(primary_available=True)
                     self._set_status(SyncStatus.WAITING_SECONDARY)
+                    if periodic_verification:
+                        self._last_periodic_verification_result = "waiting_secondary"
+                        await self._async_save()
                     return
 
                 if refresh_secondary:
                     await self._async_refresh_secondary(allow_reload=allow_reload)
+                    if periodic_verification:
+                        self._last_periodic_refresh_mode = self._last_refresh_mode
                     # A config-entry reload can replace the underlying Todo entity.
                     self._bind_todo_item_listeners()
 
@@ -426,13 +479,24 @@ class TodoListSyncManager:
                     await self._async_reconcile()
 
                 self._last_error = None
+                if periodic_verification:
+                    self._last_periodic_verification = dt_util.utcnow().isoformat()
+                    self._last_periodic_verification_result = "synchronized"
+                    self._periodic_verification_count += 1
+                    # Reconciliation already persisted the shadow. Persist the
+                    # periodic-verification metadata separately once per interval.
+                    await self._async_save()
                 self._set_status(SyncStatus.SYNCHRONIZED)
             except asyncio.CancelledError:
                 raise
             except Exception as err:  # noqa: BLE001 - provider errors are heterogeneous
                 self._last_error = f"{type(err).__name__}: {err}"
+                if periodic_verification:
+                    self._last_periodic_verification_result = "error"
+                    if self._last_periodic_refresh_mode == "not_run" and refresh_secondary:
+                        self._last_periodic_refresh_mode = "error"
                 self._set_status(SyncStatus.ERROR)
-                _LOGGER.exception("Todo List Sync failed during %s", reason)
+                _LOGGER.exception("Todo List Sync failed during %s", effective_reason)
                 await self._async_save()
 
     async def _async_refresh_secondary(self, *, allow_reload: bool) -> None:
@@ -849,6 +913,11 @@ class TodoListSyncManager:
             shadow=self._shadow,
             last_sync=self._last_sync,
             last_error=self._last_error,
+            last_periodic_verification=self._last_periodic_verification,
+            last_periodic_verification_attempt=self._last_periodic_verification_attempt,
+            last_periodic_verification_result=self._last_periodic_verification_result,
+            last_periodic_refresh_mode=self._last_periodic_refresh_mode,
+            periodic_verification_count=self._periodic_verification_count,
         )
         self._notify_entities()
 

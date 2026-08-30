@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.4 — 2026-08-30
+
+Synchronization-noise reduction and periodic-verification diagnostics.
+
+### Changed
+
+- Provider state changes now trigger reconciliation only when a selected to-do entity actually transitions between available and unavailable.
+- Normal provider state/attribute refreshes no longer cause redundant `syncing → synchronized` passes.
+- To-do item updates remain event-driven through the dedicated item-update subscription.
+- Periodic verification is tracked independently while queued, so concurrent item events cannot erase a pending 30-minute safety verification.
+
+### Added
+
+- Persistent periodic-verification diagnostics:
+  - `last_periodic_verification`
+  - `last_periodic_verification_attempt`
+  - `last_periodic_verification_result`
+  - `last_periodic_refresh_mode`
+  - `periodic_verification_count`
+- A successful Alexa periodic verification can now be confirmed directly with `last_periodic_verification_result: synchronized` and `last_periodic_refresh_mode: alexa_full_sync`.
+
 ## 0.1.3 — 2026-08-30
 
 Home Assistant event-loop thread-safety hotfix.

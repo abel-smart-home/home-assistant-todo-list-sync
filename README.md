@@ -4,7 +4,7 @@ A Home Assistant custom integration that keeps two `todo` entities synchronized 
 
 It is designed for setups where one list must remain local and authoritative while another list provides a convenient external interface, such as **Home Assistant Local To-do ↔ Alexa Devices Shopping List**.
 
-> **Version 0.1.3 is still experimental.** Test it with non-critical lists first and keep a backup of your Home Assistant configuration.
+> **Version 0.1.4 is still experimental.** Test it with non-critical lists first and keep a backup of your Home Assistant configuration.
 
 This release also adds local brand images so the integration displays a proper icon and logo in Home Assistant.
 
@@ -36,7 +36,8 @@ The integration remembers the **last common synchronized state** (the *shadow*) 
 - Pre-existing completed history is not imported during first setup.
 - Completion state of items tracked after installation is synchronized.
 - Case-, accent- and whitespace-insensitive matching to reduce duplicates.
-- Event-driven synchronization for normal changes.
+- Event-driven synchronization for normal item changes.
+- Availability-state listener reacts only to actual available/unavailable transitions, avoiding redundant reconciliations from provider state churn.
 - Safety verification every **30 minutes minimum**.
 - Optimized full-list refresh for Home Assistant 2026.8.x **Alexa Devices** when its compatible runtime helper is available.
 - Immediate provider refresh after reconnect when possible.
@@ -216,6 +217,8 @@ For a compatible Alexa Devices secondary list, the periodic verification asks Al
 
 A full config-entry reload is reserved as a reconnect fallback for providers where no lighter refresh mechanism is available.
 
+The status sensor records each periodic verification separately. A successful periodic pass updates `last_periodic_verification`, increments `periodic_verification_count`, sets `last_periodic_verification_result` to `synchronized`, and records the provider refresh method in `last_periodic_refresh_mode`. These fields are persisted across Home Assistant restarts.
+
 ## Matching and duplicates
 
 Logical comparison normalizes:
@@ -236,7 +239,7 @@ The displayed text itself is not forcibly converted to lowercase.
 
 ### Duplicate limitation
 
-Version 0.1.3 treats identical normalized names as one logical item. If a provider deliberately stores multiple active entries with the same normalized name, Todo List Sync does not preserve duplicate multiplicity.
+Version 0.1.4 treats identical normalized names as one logical item. If a provider deliberately stores multiple active entries with the same normalized name, Todo List Sync does not preserve duplicate multiplicity.
 
 ## Completion behavior
 
@@ -244,7 +247,7 @@ Completed items that existed before installing the integration are ignored.
 
 Once an active item is tracked in the shadow, marking it completed on either side is synchronized to the other side. If a provider later deletes that tracked completed item, the deletion can also be reconciled.
 
-## What is not synchronized in 0.1.3
+## What is not synchronized in 0.1.4
 
 - item ordering
 - due dates
@@ -273,6 +276,11 @@ pending_primary_to_secondary: 0
 pending_secondary_to_primary: 0
 conflicts_last_sync: 0
 last_refresh_mode: alexa_full_sync
+last_periodic_verification: 2026-08-30T20:00:00+00:00
+last_periodic_verification_attempt: 2026-08-30T20:00:00+00:00
+last_periodic_verification_result: synchronized
+last_periodic_refresh_mode: alexa_full_sync
+periodic_verification_count: 4
 ```
 
 Shopping-list item names are intentionally excluded from diagnostics.

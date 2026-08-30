@@ -41,6 +41,17 @@ class SyncStorage:
             "shadow": shadow,
             "last_sync": data.get("last_sync"),
             "last_error": data.get("last_error"),
+            "last_periodic_verification": data.get("last_periodic_verification"),
+            "last_periodic_verification_attempt": data.get(
+                "last_periodic_verification_attempt"
+            ),
+            "last_periodic_verification_result": data.get(
+                "last_periodic_verification_result"
+            ),
+            "last_periodic_refresh_mode": data.get("last_periodic_refresh_mode"),
+            "periodic_verification_count": int(
+                data.get("periodic_verification_count", 0) or 0
+            ),
         }
 
     async def async_save(
@@ -51,6 +62,11 @@ class SyncStorage:
         shadow: dict[str, SyncItem],
         last_sync: str | None,
         last_error: str | None,
+        last_periodic_verification: str | None,
+        last_periodic_verification_attempt: str | None,
+        last_periodic_verification_result: str | None,
+        last_periodic_refresh_mode: str | None,
+        periodic_verification_count: int,
     ) -> None:
         """Persist the synchronization state immediately."""
 
@@ -61,5 +77,14 @@ class SyncStorage:
                 "shadow": {key: item.to_storage() for key, item in shadow.items()},
                 "last_sync": last_sync,
                 "last_error": last_error,
+                "last_periodic_verification": last_periodic_verification,
+                "last_periodic_verification_attempt": (
+                    last_periodic_verification_attempt
+                ),
+                "last_periodic_verification_result": (
+                    last_periodic_verification_result
+                ),
+                "last_periodic_refresh_mode": last_periodic_refresh_mode,
+                "periodic_verification_count": periodic_verification_count,
             }
         )
