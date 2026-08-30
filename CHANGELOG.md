@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.1 — 2026-08-30
+
+Experimental maintenance and branding update.
+
+### Added
+
+- Local Home Assistant brand assets under `custom_components/todo_list_sync/brand/`.
+- `icon.png`, `icon@2x.png`, `logo.png`, `logo@2x.png`.
+- `dark_icon.png`, `dark_icon@2x.png`, `dark_logo.png`, `dark_logo@2x.png` for dark mode support.
+
+### Changed
+
+- Updated GitHub Actions checkout step from `actions/checkout@v4` to `actions/checkout@v7` to avoid Node.js 20 deprecation warnings.
+- Bumped integration version to `0.1.1`.
+
 ## 0.1.0 — 2026-08-30
 
 Initial experimental release.

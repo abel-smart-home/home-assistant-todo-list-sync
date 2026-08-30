@@ -4,7 +4,9 @@ A Home Assistant custom integration that keeps two `todo` entities synchronized 
 
 It is designed for setups where one list must remain local and authoritative while another list provides a convenient external interface, such as **Home Assistant Local To-do ↔ Alexa Devices Shopping List**.
 
-> **Version 0.1.0 is an initial experimental release.** Test it with non-critical lists first and keep a backup of your Home Assistant configuration.
+> **Version 0.1.1 is still experimental.** Test it with non-critical lists first and keep a backup of your Home Assistant configuration.
+
+This release also adds local brand images so the integration displays a proper icon and logo in Home Assistant.
 
 ## Why this exists
 
@@ -234,7 +236,7 @@ The displayed text itself is not forcibly converted to lowercase.
 
 ### Duplicate limitation
 
-Version 0.1.0 treats identical normalized names as one logical item. If a provider deliberately stores multiple active entries with the same normalized name, Todo List Sync does not preserve duplicate multiplicity.
+Version 0.1.1 treats identical normalized names as one logical item. If a provider deliberately stores multiple active entries with the same normalized name, Todo List Sync does not preserve duplicate multiplicity.
 
 ## Completion behavior
 
@@ -242,7 +244,7 @@ Completed items that existed before installing the integration are ignored.
 
 Once an active item is tracked in the shadow, marking it completed on either side is synchronized to the other side. If a provider later deletes that tracked completed item, the deletion can also be reconciled.
 
-## What is not synchronized in 0.1.0
+## What is not synchronized in 0.1.1
 
 - item ordering
 - due dates
