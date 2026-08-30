@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.5 — 2026-08-30
+
+Semantic deduplication for to-do update notifications.
+
+### Fixed
+
+- Ignore Home Assistant to-do subscriber notifications when the list semantics have not changed.
+- Prevent Alexa/coordinator refreshes from producing unnecessary `syncing → synchronized` activity when item identity and active/completed state are unchanged.
+- Preserve immediate event-driven synchronization for real additions, removals and completion-state changes.
+
+### Added
+
+- Stable semantic list signatures based on normalized item identity plus active/completed status.
+- Unit coverage confirming the signature ignores ordering/display-only differences and detects membership/status changes.
+- Manual idle-refresh regression test in `docs/TEST_PLAN.md`.
+
+### Unchanged
+
+- The independent 30-minute safety verification and its diagnostics remain unchanged.
+- Three-way reconciliation, offline recovery and Alexa full-list refresh behavior remain unchanged.
+
 ## 0.1.4 — 2026-08-30
 
 Synchronization-noise reduction and periodic-verification diagnostics.

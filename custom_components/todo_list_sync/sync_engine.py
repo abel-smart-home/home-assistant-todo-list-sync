@@ -42,6 +42,18 @@ def semantic_state(item: SyncItem | None) -> str | None:
     return None if item is None else item.status
 
 
+def semantic_signature(items: dict[str, SyncItem]) -> tuple[tuple[str, str], ...]:
+    """Return a stable signature for the list semantics Todo List Sync tracks.
+
+    Provider refreshes can notify Home Assistant to-do subscribers even when the
+    item contents did not change.  The signature intentionally ignores ordering,
+    display-only spelling/case differences already normalized into the mapping
+    key, UIDs and provider metadata.
+    """
+
+    return tuple(sorted((key, item.status) for key, item in items.items()))
+
+
 def _preferred_item(
     primary: SyncItem | None,
     secondary: SyncItem | None,

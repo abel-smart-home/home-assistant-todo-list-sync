@@ -10,6 +10,7 @@ from custom_components.todo_list_sync.sync_engine import (
     build_safe_initial_target,
     normalize_summary,
     reconcile_three_way,
+    semantic_signature,
 )
 
 
@@ -78,3 +79,23 @@ def test_true_conflict_secondary_wins() -> None:
     )
     assert key not in result.desired
     assert result.conflicts == (key,)
+
+
+def test_semantic_signature_ignores_order_and_display_text() -> None:
+    milk = normalize_summary("Milk")
+    bread = normalize_summary("Bread")
+    first = {milk: _item("Milk"), bread: _item("Bread", STATUS_COMPLETED)}
+    second = {bread: _item("BREAD", STATUS_COMPLETED), milk: _item("MILK")}
+
+    assert semantic_signature(first) == semantic_signature(second)
+
+
+def test_semantic_signature_detects_status_and_membership_changes() -> None:
+    milk = normalize_summary("Milk")
+    bread = normalize_summary("Bread")
+    baseline = {milk: _item("Milk"), bread: _item("Bread")}
+    completed = {milk: _item("Milk", STATUS_COMPLETED), bread: _item("Bread")}
+    removed = {milk: _item("Milk")}
+
+    assert semantic_signature(baseline) != semantic_signature(completed)
+    assert semantic_signature(baseline) != semantic_signature(removed)

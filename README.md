@@ -4,7 +4,7 @@ A Home Assistant custom integration that keeps two `todo` entities synchronized 
 
 It is designed for setups where one list must remain local and authoritative while another list provides a convenient external interface, such as **Home Assistant Local To-do ↔ Alexa Devices Shopping List**.
 
-> **Version 0.1.4 is still experimental.** Test it with non-critical lists first and keep a backup of your Home Assistant configuration.
+> **Version 0.1.5 is still experimental.** Test it with non-critical lists first and keep a backup of your Home Assistant configuration.
 
 This release also adds local brand images so the integration displays a proper icon and logo in Home Assistant.
 
@@ -199,7 +199,7 @@ For Alexa Devices on Home Assistant 2026.8.x, Todo List Sync uses feature detect
 
 ## Safety verification
 
-Normal changes are event-driven. Separately, Todo List Sync performs a safety verification at the configured interval.
+Normal changes are event-driven. Provider/coordinator refreshes that re-notify an unchanged to-do list are ignored by comparing a semantic signature of item identity and active/completed state. Separately, Todo List Sync performs a safety verification at the configured interval.
 
 Default:
 
@@ -239,7 +239,7 @@ The displayed text itself is not forcibly converted to lowercase.
 
 ### Duplicate limitation
 
-Version 0.1.4 treats identical normalized names as one logical item. If a provider deliberately stores multiple active entries with the same normalized name, Todo List Sync does not preserve duplicate multiplicity.
+Version 0.1.5 treats identical normalized names as one logical item. If a provider deliberately stores multiple active entries with the same normalized name, Todo List Sync does not preserve duplicate multiplicity.
 
 ## Completion behavior
 
@@ -247,7 +247,7 @@ Completed items that existed before installing the integration are ignored.
 
 Once an active item is tracked in the shadow, marking it completed on either side is synchronized to the other side. If a provider later deletes that tracked completed item, the deletion can also be reconciled.
 
-## What is not synchronized in 0.1.4
+## What is not synchronized in 0.1.5
 
 - item ordering
 - due dates

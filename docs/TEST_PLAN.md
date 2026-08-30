@@ -230,7 +230,7 @@ Expected:
 
 - they are treated as one logical item.
 
-Version 0.1.0 intentionally does not preserve multiple quantities represented by duplicate identical names.
+Version 0.1.5 intentionally does not preserve multiple quantities represented by duplicate identical names.
 
 ## Test 15 — idle provider state churn does not trigger reconciliation
 
@@ -243,3 +243,16 @@ Expected:
 - ordinary Alexa/provider state or attribute refreshes do not repeatedly produce `syncing → synchronized`.
 - an actual to-do item change still synchronizes within a few seconds.
 - the 30-minute periodic verification still runs independently and increments `periodic_verification_count`.
+
+
+## Test 15 — unchanged provider refresh notifications
+
+1. Leave both lists unchanged and available.
+2. Do not add, remove or complete any items.
+3. Observe the Todo List Sync Status activity before the next 30-minute safety verification.
+
+Expected:
+
+- ordinary provider/coordinator refreshes with identical list semantics do not trigger repeated `syncing → synchronized` passes.
+- a real add/remove/complete operation still triggers event-driven synchronization promptly.
+- the independent 30-minute periodic verification still runs and increments `periodic_verification_count`.

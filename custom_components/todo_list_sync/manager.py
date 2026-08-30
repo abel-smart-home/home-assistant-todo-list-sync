@@ -47,6 +47,7 @@ from .sync_engine import (
     count_semantic_differences,
     normalize_summary,
     reconcile_three_way,
+    semantic_signature,
     semantic_state,
 )
 
@@ -106,6 +107,9 @@ class TodoListSyncManager:
 
         self._unsubscribers: list[Callable[[], None]] = []
         self._todo_unsubscribers: list[Callable[[], None]] = []
+        self._todo_item_signatures: dict[
+            str, tuple[tuple[str, str], ...]
+        ] = {}
 
     @property
     def conflict_policy(self) -> ConflictPolicy:
@@ -380,24 +384,56 @@ class TodoListSyncManager:
         )
 
     def _bind_todo_item_listeners(self) -> None:
-        """Subscribe directly to to-do item updates for reliable content changes."""
+        """Subscribe to meaningful to-do item changes without provider-refresh noise."""
 
         for unsubscribe in self._todo_unsubscribers:
             with suppress(Exception):
                 unsubscribe()
         self._todo_unsubscribers.clear()
 
-        @callback
-        def _items_changed(_items: Any) -> None:
-            if self._suppress_events or not self._enabled:
-                return
-            self.async_request_sync("todo_items_changed")
-
         for entity_id in (self.primary_entity_id, self.secondary_entity_id):
             entity = self._get_todo_entity(entity_id)
             if entity is None:
+                self._todo_item_signatures.pop(entity_id, None)
                 continue
-            self._todo_unsubscribers.append(entity.async_subscribe_updates(_items_changed))
+
+            # Home Assistant's TodoListEntity notifies item subscribers whenever its
+            # state is written, including coordinator refreshes where the list is
+            # unchanged. Seed the current semantic signature so those no-op writes
+            # are ignored while real add/remove/complete changes remain event-driven.
+            self._todo_item_signatures[entity_id] = self._todo_item_signature(entity)
+
+            @callback
+            def _items_changed(_items: Any, *, _entity_id: str = entity_id) -> None:
+                current_entity = self._get_todo_entity(_entity_id)
+                if current_entity is None:
+                    self._todo_item_signatures.pop(_entity_id, None)
+                    return
+
+                signature = self._todo_item_signature(current_entity)
+                previous = self._todo_item_signatures.get(_entity_id)
+                self._todo_item_signatures[_entity_id] = signature
+
+                # Keep the cache fresh even for our own provider writes, but do not
+                # recursively schedule synchronization while events are suppressed.
+                if self._suppress_events or not self._enabled:
+                    return
+                if signature == previous:
+                    return
+
+                self.async_request_sync("todo_items_changed")
+
+            self._todo_unsubscribers.append(
+                entity.async_subscribe_updates(_items_changed)
+            )
+
+    def _todo_item_signature(
+        self, entity: TodoListEntity
+    ) -> tuple[tuple[str, str], ...]:
+        """Return the stable semantic signature relevant to synchronization."""
+
+        snapshot = self._snapshot_entity(entity, tracked_keys=set(self._shadow))
+        return semantic_signature(snapshot)
 
     def _bind_periodic_verification(self) -> None:
         """Run a full safety verification no more often than configured."""
