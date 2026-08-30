@@ -1,0 +1,94 @@
+name: Bug report
+description: Report a synchronization, recovery or compatibility problem
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Please avoid pasting shopping-list contents, Amazon credentials, cookies or tokens.
+
+  - type: input
+    id: integration_version
+    attributes:
+      label: Todo List Sync version
+      placeholder: 0.1.6
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant Core version
+      placeholder: 2026.8.3
+    validations:
+      required: true
+
+  - type: dropdown
+    id: primary_provider
+    attributes:
+      label: Primary list provider
+      options:
+        - Home Assistant Local To-do
+        - Alexa Devices
+        - Other Home Assistant todo provider
+    validations:
+      required: true
+
+  - type: dropdown
+    id: secondary_provider
+    attributes:
+      label: Secondary list provider
+      options:
+        - Alexa Devices
+        - Home Assistant Local To-do
+        - Other Home Assistant todo provider
+    validations:
+      required: true
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: Todo List Sync status when the problem occurs
+      options:
+        - synchronized
+        - syncing
+        - waiting_primary
+        - waiting_secondary
+        - error
+        - initializing
+        - disabled
+        - Unknown / other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the sequence of actions. Replace real shopping item names with neutral placeholders.
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Privacy-safe diagnostics
+      description: Paste the Todo List Sync diagnostics or relevant Status attributes. Do not paste provider credentials/tokens.
+      render: text
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Home Assistant logs
+      description: Remove credentials, tokens, cookies and real shopping-list content before posting.
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I confirmed both selected `todo.*` entities support create, update and delete.
+          required: true
+        - label: I removed or replaced real shopping-list contents and secrets from this report.
+          required: true
