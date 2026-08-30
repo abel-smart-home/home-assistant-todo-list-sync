@@ -35,4 +35,4 @@ jobs:
         run: python -m compileall -q custom_components/todo_list_sync tests
 
       - name: Run tests
-        run: pytest --tb=short
+        run: python -m pytest --tb=short
