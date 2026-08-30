@@ -1,0 +1,21 @@
+target-version = "py314"
+line-length = 88
+
+[lint]
+select = [
+  "E4",
+  "E7",
+  "E9",
+  "F",
+  "I001",
+  "UP037",
+  "BLE001",
+  "PLR1730",
+  "RUF100",
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

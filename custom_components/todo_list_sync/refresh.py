@@ -43,7 +43,7 @@ async def async_refresh_todo_provider(
             if callable(notify):
                 notify()
             return "alexa_full_sync"
-        except Exception:  # noqa: BLE001 - provider exceptions vary by HA version
+        except Exception:
             # Do not include provider payloads/list content in default logs.
             _LOGGER.error("Provider full refresh failed for %s", entity_id)
             raise

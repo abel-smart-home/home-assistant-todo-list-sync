@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.components.todo import TodoListEntity
 from homeassistant.components.todo.const import DATA_COMPONENT, TodoListEntityFeature
 from homeassistant.config_entries import (
@@ -22,6 +21,7 @@ from .const import (
     CONF_REFRESH_ON_RECONNECT,
     CONF_SECONDARY_ENTITY,
     CONF_VERIFICATION_INTERVAL,
+    ConflictPolicy,
     DEFAULT_CONFLICT_POLICY,
     DEFAULT_REFRESH_ON_RECONNECT,
     DEFAULT_VERIFICATION_INTERVAL,
@@ -29,7 +29,6 @@ from .const import (
     MAX_VERIFICATION_INTERVAL,
     MIN_VERIFICATION_INTERVAL,
     VERIFICATION_STEP,
-    ConflictPolicy,
 )
 
 _REQUIRED_FEATURES = (

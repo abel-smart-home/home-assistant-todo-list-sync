@@ -4,7 +4,6 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-
 from homeassistant.core import CoreState
 
 from custom_components.todo_list_sync import manager as manager_module

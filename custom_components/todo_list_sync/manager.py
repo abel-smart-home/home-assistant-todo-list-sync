@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import Callable
 from contextlib import suppress
-import logging
 from typing import Any
 
 from homeassistant.components.todo import TodoListEntity
@@ -670,7 +670,7 @@ class TodoListSyncManager:
                     self.secondary_entity_id,
                     allow_config_entry_reload=allow_reload,
                 )
-            except Exception as err:  # noqa: BLE001
+            except Exception as err:
                 raise SyncFailure(
                     "Secondary provider refresh failed",
                     category="provider_refresh_failed",
@@ -985,7 +985,7 @@ class TodoListSyncManager:
                 payload,
                 blocking=True,
             )
-        except Exception as err:  # noqa: BLE001
+        except Exception as err:
             raise SyncFailure(
                 "Home Assistant to-do service call failed",
                 category="service_call_failed",

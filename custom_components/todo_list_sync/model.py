@@ -25,7 +25,7 @@ class SyncItem:
         return data
 
     @classmethod
-    def from_storage(cls, data: dict[str, Any]) -> "SyncItem":
+    def from_storage(cls, data: dict[str, Any]) -> SyncItem:
         """Deserialize a shadow item."""
 
         return cls(

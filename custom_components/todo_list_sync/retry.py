@@ -12,8 +12,7 @@ def next_retry_delay(current_attempt: int) -> float | None:
     the current failure sequence. ``None`` means the retry budget is exhausted.
     """
 
-    if current_attempt < 0:
-        current_attempt = 0
+    current_attempt = max(current_attempt, 0)
     if current_attempt >= len(RETRY_DELAYS_SECONDS):
         return None
     return RETRY_DELAYS_SECONDS[current_attempt]
