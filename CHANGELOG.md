@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2 — 2026-08-30
+
+Version display consistency fix.
+
+### Fixed
+
+- Corrected the internal `VERSION` constant from `0.1.0` to `0.1.2`.
+- The Home Assistant device information now reports firmware/software version `0.1.2`, matching HACS and `manifest.json`.
+- No synchronization behavior or logic was changed.
+
 ## 0.1.1 — 2026-08-30
 
 Experimental maintenance and branding update.
