@@ -43,6 +43,7 @@ async def test_legacy_raw_error_is_redacted(monkeypatch: pytest.MonkeyPatch) -> 
     assert loaded["last_error_category"] == "legacy_error_redacted"
     assert "PRIVATE-TEST-ITEM-9371" not in repr(loaded)
 
+
 @pytest.mark.asyncio
 async def test_storage_can_be_removed_with_config_entry(
     monkeypatch: pytest.MonkeyPatch,

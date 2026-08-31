@@ -16,8 +16,7 @@ async def test_unknown_provider_falls_back_to_cache(
     monkeypatch.setattr(refresh.er, "async_get", lambda _hass: registry)
     hass = SimpleNamespace()
     assert (
-        await refresh.async_refresh_todo_provider(hass, "todo.generic")
-        == "cache_only"
+        await refresh.async_refresh_todo_provider(hass, "todo.generic") == "cache_only"
     )
 
 

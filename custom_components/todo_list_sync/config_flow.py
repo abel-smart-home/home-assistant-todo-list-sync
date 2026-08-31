@@ -141,9 +141,7 @@ class TodoListSyncOptionsFlow(OptionsFlowWithReload):
             {
                 vol.Required(
                     CONF_CONFLICT_POLICY,
-                    default=options.get(
-                        CONF_CONFLICT_POLICY, DEFAULT_CONFLICT_POLICY
-                    ),
+                    default=options.get(CONF_CONFLICT_POLICY, DEFAULT_CONFLICT_POLICY),
                 ): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=[

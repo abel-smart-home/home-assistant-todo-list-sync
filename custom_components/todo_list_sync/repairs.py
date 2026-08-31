@@ -40,9 +40,7 @@ def create_missing_list_issue(
     )
 
 
-def clear_missing_list_issue(
-    hass: HomeAssistant, *, entry_id: str, side: str
-) -> None:
+def clear_missing_list_issue(hass: HomeAssistant, *, entry_id: str, side: str) -> None:
     """Clear a stale missing-list repair issue."""
 
     ir.async_delete_issue(hass, DOMAIN, missing_list_issue_id(entry_id, side))

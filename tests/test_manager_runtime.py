@@ -60,7 +60,7 @@ def _hass():
         state=CoreState.running,
         data={},
         states=SimpleNamespace(get=lambda _entity_id: None),
-        bus=SimpleNamespace(async_listen_once=lambda *_args: (lambda: None)),
+        bus=SimpleNamespace(async_listen_once=lambda *_args: lambda: None),
     )
 
 

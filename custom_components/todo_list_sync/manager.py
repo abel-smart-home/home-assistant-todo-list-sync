@@ -1050,9 +1050,7 @@ class TodoListSyncManager:
             )
         return entity
 
-    def _validate_entity_features(
-        self, entity: TodoListEntity, entity_id: str
-    ) -> None:
+    def _validate_entity_features(self, entity: TodoListEntity, entity_id: str) -> None:
         """Require CRUD capabilities needed for bidirectional synchronization."""
 
         supported = TodoListEntityFeature(entity.supported_features or 0)
