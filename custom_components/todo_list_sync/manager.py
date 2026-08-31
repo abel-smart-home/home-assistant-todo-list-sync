@@ -1083,9 +1083,7 @@ class TodoListSyncManager:
 
         state = self.hass.states.get(entity_id)
         if state is not None:
-            clear_missing_list_issue(
-                self.hass, entry_id=self.entry.entry_id, side=side
-            )
+            clear_missing_list_issue(self.hass, entry_id=self.entry.entry_id, side=side)
             return
 
         if self.hass.state is not CoreState.running:

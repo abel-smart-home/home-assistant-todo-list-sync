@@ -163,6 +163,7 @@ def test_initial_extra_change_queues_followup(monkeypatch: pytest.MonkeyPatch) -
 
     assert sync_manager._rerun_requested is True
 
+
 @pytest.mark.asyncio
 async def test_boot_defers_fresh_startup_pass_until_home_assistant_started(
     monkeypatch: pytest.MonkeyPatch,
