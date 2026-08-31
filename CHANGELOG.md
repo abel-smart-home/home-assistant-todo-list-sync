@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.1.9 — 2026-08-31
+
+Home Assistant startup-listener lifecycle hotfix.
+
+### Fixed
+
+- Track the one-time `homeassistant_started` listener separately from persistent listeners.
+- Clear the local listener reference as soon as Home Assistant consumes the one-time startup listener.
+- Prevent options-triggered integration reloads from trying to remove an already-consumed listener.
+- Preserve correct listener cleanup when Todo List Sync unloads before Home Assistant finishes starting.
+- Prevent the `Unable to remove unknown job listener ... homeassistant_started` log error observed after saving integration options.
+
+### Tests
+
+- Added regression coverage for unloading after the startup event has already fired.
+- Added regression coverage for unloading while the startup listener is still pending.
+
+### Unchanged
+
+- No synchronization or reconciliation behavior changes compared with v0.1.8.
+- Periodic verification, Alexa Devices refresh, retries, Repairs, storage and privacy-safe diagnostics remain unchanged.
+
 ## 0.1.8 — 2026-08-30
 
 Release metadata consistency correction.

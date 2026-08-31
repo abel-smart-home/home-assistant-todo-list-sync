@@ -12,4 +12,4 @@ def test_manifest_and_runtime_versions_match() -> None:
             encoding="utf-8"
         )
     )
-    assert manifest["version"] == VERSION == "0.1.8"
+    assert manifest["version"] == VERSION == "0.1.9"

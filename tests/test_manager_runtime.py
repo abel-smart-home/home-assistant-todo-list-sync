@@ -170,10 +170,11 @@ async def test_boot_defers_fresh_startup_pass_until_home_assistant_started(
 ) -> None:
     monkeypatch.setattr(manager_module, "SyncStorage", lambda *_args: FakeStorage())
     captured = {}
+    unsubscribe = Mock()
 
     def listen_once(_event_type, callback):
         captured["callback"] = callback
-        return lambda: None
+        return unsubscribe
 
     hass = _hass()
     hass.state = CoreState.starting
@@ -187,11 +188,42 @@ async def test_boot_defers_fresh_startup_pass_until_home_assistant_started(
 
     await sync_manager.async_setup()
     request.assert_not_called()
+    assert sync_manager._post_start_unsubscribe is unsubscribe
 
     captured["callback"](SimpleNamespace())
     request.assert_called_once_with(
         "startup", refresh_secondary=True, allow_reload=False, immediate=True
     )
+    assert sync_manager._post_start_unsubscribe is None
+
+    await sync_manager.async_shutdown()
+    unsubscribe.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_shutdown_unsubscribes_pending_startup_listener(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(manager_module, "SyncStorage", lambda *_args: FakeStorage())
+    unsubscribe = Mock()
+
+    hass = _hass()
+    hass.state = CoreState.starting
+    hass.bus = SimpleNamespace(
+        async_listen_once=lambda _event_type, _callback: unsubscribe
+    )
+    sync_manager = TodoListSyncManager(hass, _entry())
+    monkeypatch.setattr(sync_manager, "_bind_state_listeners", lambda: None)
+    monkeypatch.setattr(sync_manager, "_bind_todo_item_listeners", lambda: None)
+    monkeypatch.setattr(sync_manager, "_bind_periodic_verification", lambda: None)
+
+    await sync_manager.async_setup()
+    assert sync_manager._post_start_unsubscribe is unsubscribe
+
+    await sync_manager.async_shutdown()
+
+    unsubscribe.assert_called_once_with()
+    assert sync_manager._post_start_unsubscribe is None
 
 
 def test_temporary_unavailable_state_does_not_create_missing_repair(

@@ -142,6 +142,7 @@ class TodoListSyncManager:
         self._rerun_requested = False
         self._suppress_events = 0
 
+        self._post_start_unsubscribe: Callable[[], None] | None = None
         self._unsubscribers: list[Callable[[], None]] = []
         self._todo_unsubscribers: list[Callable[[], None]] = []
         self._todo_item_signatures: dict[str, tuple[tuple[str, str], ...]] = {}
@@ -285,6 +286,11 @@ class TodoListSyncManager:
                 unsubscribe()
         self._todo_unsubscribers.clear()
 
+        if self._post_start_unsubscribe is not None:
+            with suppress(Exception):
+                self._post_start_unsubscribe()
+            self._post_start_unsubscribe = None
+
         for unsubscribe in self._unsubscribers:
             with suppress(Exception):
                 unsubscribe()
@@ -412,6 +418,10 @@ class TodoListSyncManager:
 
         @callback
         def _started(_event: Event) -> None:
+            # Home Assistant consumes async_listen_once listeners before invoking
+            # their callback. Clear our local reference so a later config-entry
+            # unload does not try to remove the already-consumed listener again.
+            self._post_start_unsubscribe = None
             if self._enabled:
                 self.async_request_sync(
                     "startup",
@@ -420,8 +430,8 @@ class TodoListSyncManager:
                     immediate=True,
                 )
 
-        self._unsubscribers.append(
-            self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _started)
+        self._post_start_unsubscribe = self.hass.bus.async_listen_once(
+            EVENT_HOMEASSISTANT_STARTED, _started
         )
 
     def _bind_state_listeners(self) -> None:

@@ -7,7 +7,7 @@ from enum import StrEnum
 
 DOMAIN = "todo_list_sync"
 NAME = "Todo List Sync"
-VERSION = "0.1.8"
+VERSION = "0.1.9"
 
 CONF_PRIMARY_ENTITY = "primary_entity"
 CONF_SECONDARY_ENTITY = "secondary_entity"
