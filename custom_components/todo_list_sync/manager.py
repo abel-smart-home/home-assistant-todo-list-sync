@@ -1121,9 +1121,7 @@ class TodoListSyncManager:
                 )
         self._notify_entities()
 
-    def _queue_followup_for_initial_extras(
-        self, desired: dict[str, SyncItem]
-    ) -> None:
+    def _queue_followup_for_initial_extras(self, desired: dict[str, SyncItem]) -> None:
         """Catch meaningful list changes that occurred during initial writes."""
 
         expected = semantic_signature(desired)
