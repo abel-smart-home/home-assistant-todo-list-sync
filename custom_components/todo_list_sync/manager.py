@@ -11,9 +11,9 @@ from typing import Any
 from homeassistant.components.todo import TodoListEntity
 from homeassistant.components.todo.const import (
     DATA_COMPONENT,
-    DOMAIN as TODO_DOMAIN,
     TodoListEntityFeature,
 )
+from homeassistant.components.todo.const import DOMAIN as TODO_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     EVENT_HOMEASSISTANT_STARTED,
