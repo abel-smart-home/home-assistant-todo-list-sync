@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.1.8 — 2026-08-30
+
+Release metadata consistency correction.
+
+### Fixed
+
+- Align `manifest.json` with release version `0.1.8`.
+- Align the runtime `VERSION` constant with release version `0.1.8`.
+- Align the automated version-consistency test with release version `0.1.8`.
+- Restore the missing `0.1.7` release-history entry in this changelog.
+
+### Unchanged
+
+- No synchronization behavior changes compared with v0.1.7.
+- Reliability, recovery, Repairs, privacy-safe diagnostics, retry handling, Alexa Devices refresh support, semantic event deduplication and periodic verification remain unchanged.
+
+## 0.1.7 — 2026-08-30
+
+CI and repository-quality finalization.
+
+### Changed
+
+- Finalized Ruff 0.16.5 lint and formatting compliance.
+- Updated `actions/checkout` to v7.0.1.
+- Updated `actions/setup-python` to v7.0.0.
+- Confirmed Python 3.14.2 CI compatibility for Home Assistant Core 2026.8.3.
+- Finalized test formatting and repository quality checks.
+
+### Unchanged
+
+- No intentional synchronization behavior changes compared with v0.1.6.
+- The reliability and recovery improvements introduced in v0.1.6 remain unchanged.
+
 ## 0.1.6 — 2026-08-30
 
 Reliability, recovery, privacy and project-quality release.
